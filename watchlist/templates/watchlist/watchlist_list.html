@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-6 py-10">
+    <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+        📊 <span>Your Watchlist</span>
+    </h2>
+
+    <div class="overflow-x-auto bg-white rounded-2xl shadow-md border border-gray-200">
+        <table id="watchlist-table" class="w-full text-sm text-left">
+            <thead class="bg-gray-100 text-gray-700">
+                <tr>
+                    <th class="px-6 py-3 uppercase tracking-wide text-xs text-gray-500">Symbol</th>
+                    <th class="px-6 py-3 uppercase tracking-wide text-xs text-gray-500 text-center w-40">Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% for item in watchlist %}
+                <tr id="watchlist-row-{{ item.symbol }}" class="border-t hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 font-medium text-gray-800 align-middle">{{ item.symbol }}</td>
+                    <td class="px-6 py-4 text-center align-middle">
+                        <button
+                            class="remove-btn inline-flex items-center justify-center bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm transition"
+                            data-symbol="{{ item.symbol }}"
+                            data-url="{% url 'remove_from_watchlist' item.symbol %}">
+                            Remove
+                        </button>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr id="empty-row">
+                    <td colspan="2" class="px-6 py-6 text-center text-gray-500 italic">
+                        No stocks in your watchlist.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="{% static 'js/watchlist.js' %}" defer></script>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% for stock in stocks %}
+        <div>
+            <strong> {{ stock.symbol }} </strong>
+            {% if stock.symbol in user_watchlist %}
+                <form method="post" action="{% url 'remove_from_watchlist' stock.symbol %}">
+                    {% csrf_token %}
+                    <button type="submit">Remove from Watchlist</button>
+                </form>
+                <form method="post" action="{% url 'add_to_watchlist' stock.symbol %}">
+                    {% csrf_token %}
+                    <button type="submit">Add to Watchlist</button>
+                </form>
+            {% endif %}
+        </div>
+    {% endfor %}
