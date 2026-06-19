@@ -197,13 +197,28 @@ LOGIN_URL = '/users/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/users/login'
 
+# Celery Beat periodic tasks
 CELERY_BEAT_SCHEDULE = {
     'update-all-stocks-daily': {
         'task': 'stocks.tasks.update_all_stocks_task',
-        'schedule': crontab(hour=8, minute=0),
+        'schedule': crontab(hour=8, minute=0),  # 8am UTC daily
     },
     'update-all-stocks-eod': {
         'task': 'stocks.tasks.update_all_stocks_task',
-        'schedule': crontab(hour=21, minute=0),
+        'schedule': crontab(hour=21, minute=0),  # 9pm UTC (after US market close)
     },
+}
+
+# Swagger / drf-yasg
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'JWT token. Format: Bearer <token>',
+        }
+    },
+    'USE_SESSION_AUTH': False,
+    'JSON_EDITOR': True,
 }
