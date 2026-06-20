@@ -61,6 +61,10 @@ def stock_dashboard(request):
     if request.user.is_authenticated:
         user_watchlist = Watchlist.objects.filter(user=request.user).values_list('symbol', flat=True)
 
+    # ML Prediction
+    from stocks.ml_predict import predict_trend
+    prediction = predict_trend(symbol)
+
     # Step 6: Render final response
     return render(request, "dashboard/dashboard.html", {
         "form": StockFilterForm(request.GET or None),
@@ -70,6 +74,7 @@ def stock_dashboard(request):
         "start": start_date,
         "end": end_date,
         "user_watchlist": user_watchlist,
+        "prediction": prediction,
     })
 
 def clean_data(values):

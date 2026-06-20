@@ -116,3 +116,18 @@ class StockDataView(APIView):
         saved_data = StockIndicator.objects.filter(symbol=symbol).order_by('date')
         serializer = StockIndicatorSerializer(saved_data, many=True)
         return JsonResponse(serializer.data, safe=False)
+
+
+class StockPredictView(APIView):
+    """
+    GET /api/stocks/predict/?symbol=AAPL
+    Returns ML-based trend prediction for tomorrow.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        from .ml_predict import predict_trend
+        symbol = request.query_params.get('symbol', 'AAPL').upper()
+        result = predict_trend(symbol)
+        result['symbol'] = symbol
+        return Response(result)

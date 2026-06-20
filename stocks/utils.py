@@ -63,8 +63,8 @@ def fetch_and_save_stock_data(symbol):
                     'rsi': row.get("RSI_14"),
                     'sma_14': row.get("SMA_14"),
                     'macd_line': row.get("MACD_12_26_9"),
-                    'bb_upper': row.get("BBU_20_2.0"),
-                    'bb_lower': row.get("BBL_20_2.0"),
+                    'bb_upper': row.get("BBU_20_2.0_2.0"),
+                    'bb_lower': row.get("BBL_20_2.0_2.0"),
                 }
             )
             
