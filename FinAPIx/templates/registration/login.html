@@ -1,10 +1,35 @@
 {% extends "base.html" %}
+{% block title %}Login — FinAPIx{% endblock %}
+
+{% block extra_head %}
+<style>
+    .auth-card p { color: #e0e0e0; }
+    .auth-card label { color: #aaa; display: block; margin-bottom: 4px; font-size: 0.875rem; }
+    .auth-card input {
+        width: 100%; padding: 8px 12px; margin-bottom: 4px;
+        background: #22263a; color: #e0e0e0;
+        border: 1px solid #3a3d50; border-radius: 6px;
+    }
+    .auth-card input:focus { outline: none; border-color: #4bc0c0; }
+    .auth-card .errorlist { color: #ff6b6b; font-size: 0.8rem; list-style: none; padding: 0; }
+    input:-webkit-autofill { -webkit-box-shadow: 0 0 0px 1000px #22263a inset !important; -webkit-text-fill-color: #e0e0e0 !important; }
+</style>
+{% endblock %}
 
 {% block content %}
-  <h2>Login</h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Login</button>
-  </form>
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card p-4 shadow auth-card">
+            <h3 class="mb-4 text-center" style="color:#e0e0e0;">🔐 Login</h3>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary w-100 mt-2">Login</button>
+            </form>
+            <p class="text-center mt-3" style="color:#aaa;">
+                No account? <a href="{% url 'register' %}" style="color:#4bc0c0;">Register here</a>
+            </p>
+        </div>
+    </div>
+</div>
 {% endblock %}

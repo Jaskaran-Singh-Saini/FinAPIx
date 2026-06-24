@@ -11,32 +11,29 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 
-# Create your views here.
 
 @login_required
 def hello_view(request):
-    
     return JsonResponse({"message": f"Hello, {request.user.username}!"})
+
 
 class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
-
         if serializer.is_valid():
             user = serializer.save()
-
             refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-
-            return Response({"message": "User register successfully!",
+            return Response({
+                "message": "User registered successfully!",
                 'refresh': str(refresh),
-                'access': access_token
+                'access': str(refresh.access_token)
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 def register_view(request):
+    if request.user.is_authenticated:
+        return redirect("stock_dashboard")
     if request.method == "POST":
         form = UserCreationForm(request.POST)
         if form.is_valid():
@@ -50,7 +47,10 @@ def register_view(request):
         form = UserCreationForm()
     return render(request, "register.html", {"form": form})
 
+
 def login_view(request):
+    if request.user.is_authenticated:
+        return redirect("stock_dashboard")
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -61,7 +61,8 @@ def login_view(request):
     else:
         form = AuthenticationForm()
     return render(request, "login.html", {"form": form})
-    
+
+
 def logout_view(request):
     logout(request)
     messages.success(request, "👋 You have been logged out.")

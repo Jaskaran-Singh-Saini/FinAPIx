@@ -51,7 +51,7 @@ urlpatterns = [
     path("watchlist/", include("watchlist.urls")),
     path("api/stocks/", include("stocks.urls")),
     path("dashboard/", stock_dashboard, name="stock_dashboard"),
-    path("accounts/", include("django.contrib.auth.urls")),
+    # path("accounts/", include("django.contrib.auth.urls")),
 
     # API Docs
     path("api/docs/", schema_view.with_ui("swagger", cache_timeout=0), name="swagger-ui"),

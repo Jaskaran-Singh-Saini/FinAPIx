@@ -35,7 +35,7 @@ class WatchlistDetailView(generics.DestroyAPIView):
 @login_required
 def watchlist_page(request):
     watchlist_items = Watchlist.objects.filter(user=request.user)
-    return render(request, "watchlist/watchlist_list.html", {"watchlist": watchlist_items})
+    return render(request, "watchlist/watchlist_list.html", {"watchlist_items": watchlist_items})
 
 
 @login_required

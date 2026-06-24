@@ -1,45 +1,136 @@
 {% extends "base.html" %}
 {% load static %}
+{% block title %}Watchlist — FinAPIx{% endblock %}
+
+{% block extra_head %}
+<style>
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .page-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.6rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px; margin: 0; }
+    .page-title svg { color: #FFB020; }
+
+    .watchlist-table { width: 100%; border-collapse: collapse; }
+    .watchlist-table thead tr { border-bottom: 1px solid var(--border-subtle); }
+    .watchlist-table thead th { color: var(--text-muted); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 0 16px 12px; }
+    .watchlist-table tbody tr { border-bottom: 1px solid var(--border-subtle); transition: background 0.1s; }
+    .watchlist-table tbody tr:last-child { border-bottom: none; }
+    .watchlist-table tbody tr:hover { background: rgba(255,255,255,0.015); }
+    .watchlist-table td { padding: 14px 16px; vertical-align: middle; }
+    .sym-cell { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 1rem; color: var(--text-primary); letter-spacing: 0.02em; }
+
+    .btn-view { background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.2); color: var(--accent-glow); border-radius: 7px; font-size: 0.8rem; font-weight: 600; padding: 6px 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; }
+    .btn-view:hover { background: rgba(34,211,238,0.15); color: var(--accent-glow); }
+    .btn-remove { background: transparent; border: 1px solid var(--border-strong); color: var(--text-muted); border-radius: 7px; font-size: 0.8rem; padding: 6px 10px; cursor: pointer; display: inline-flex; align-items: center; transition: all 0.15s; }
+    .btn-remove:hover { border-color: var(--bear); color: var(--bear); background: rgba(255,77,109,0.06); }
+
+    .add-card { margin-top: 1.5rem; }
+    .add-card .card-inner { padding: 1.25rem 1.5rem; }
+    .add-label { color: var(--text-secondary); font-size: 0.82rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 10px; }
+    .add-row { display: flex; gap: 10px; align-items: center; }
+    .add-input { flex: 1; max-width: 200px; padding: 9px 14px; background: #0F1420 !important; color: var(--text-primary) !important; border: 1px solid var(--border-subtle) !important; border-radius: 8px !important; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase; }
+    .add-input:focus { border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(124,92,255,0.15) !important; outline: none; }
+    .add-input::placeholder { text-transform: none; font-family: 'Manrope', sans-serif; color: var(--text-muted) !important; }
+
+    .empty-state { text-align: center; padding: 4rem 2rem; color: var(--text-muted); }
+    .empty-state svg { margin-bottom: 1rem; opacity: 0.3; }
+    .empty-state p { margin-bottom: 1.5rem; font-size: 0.95rem; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto px-6 py-10">
-    <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-        📊 <span>Your Watchlist</span>
-    </h2>
-
-    <div class="overflow-x-auto bg-white rounded-2xl shadow-md border border-gray-200">
-        <table id="watchlist-table" class="w-full text-sm text-left">
-            <thead class="bg-gray-100 text-gray-700">
-                <tr>
-                    <th class="px-6 py-3 uppercase tracking-wide text-xs text-gray-500">Symbol</th>
-                    <th class="px-6 py-3 uppercase tracking-wide text-xs text-gray-500 text-center w-40">Action</th>
-                </tr>
-            </thead>
-
-            <tbody>
-            {% for item in watchlist %}
-                <tr id="watchlist-row-{{ item.symbol }}" class="border-t hover:bg-gray-50 transition">
-                    <td class="px-6 py-4 font-medium text-gray-800 align-middle">{{ item.symbol }}</td>
-                    <td class="px-6 py-4 text-center align-middle">
-                        <button
-                            class="remove-btn inline-flex items-center justify-center bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm transition"
-                            data-symbol="{{ item.symbol }}"
-                            data-url="{% url 'remove_from_watchlist' item.symbol %}">
-                            Remove
-                        </button>
-                    </td>
-                </tr>
-            {% empty %}
-                <tr id="empty-row">
-                    <td colspan="2" class="px-6 py-6 text-center text-gray-500 italic">
-                        No stocks in your watchlist.
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<div class="page-header">
+    <h1 class="page-title">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFB020" stroke="#FFB020" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Watchlist
+    </h1>
+    <a href="{% url 'stock_dashboard' %}" class="btn-ghost btn d-flex align-items-center gap-2" style="font-size:0.875rem;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Dashboard
+    </a>
 </div>
 
-<script src="{% static 'js/watchlist.js' %}" defer></script>
+<div class="card">
+    {% if watchlist_items %}
+    <table class="watchlist-table">
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in watchlist_items %}
+            <tr id="row-{{ item.symbol }}">
+                <td class="sym-cell">{{ item.symbol }}</td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'stock_dashboard' %}?symbol={{ item.symbol }}" class="btn-view">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                            View chart
+                        </a>
+                        <button class="btn-remove remove-btn" data-symbol="{{ item.symbol }}" data-url="{% url 'remove_from_watchlist' item.symbol %}" title="Remove">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <p>Your watchlist is empty. Add symbols to track them here.</p>
+        <a href="{% url 'stock_dashboard' %}" class="btn btn-primary-accent">Go to Dashboard</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="add-card">
+    <div class="card">
+        <div class="card-inner">
+            <div class="add-label">Add symbol</div>
+            <form method="post" id="add-symbol-form">
+                {% csrf_token %}
+                <div class="add-row">
+                    <input type="text" name="symbol" id="add-symbol-input" class="add-input" placeholder="e.g. NVDA" autocomplete="off" spellcheck="false">
+                    <button type="submit" class="btn btn-bull">Add to watchlist</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById("add-symbol-form").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const symbol = document.getElementById("add-symbol-input").value.toUpperCase().trim();
+    if (!symbol) return;
+    const csrfToken = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || "";
+    fetch(`/watchlist/add/${symbol}/`, {
+        method: "POST",
+        headers: { "X-CSRFToken": csrfToken, "X-Requested-With": "XMLHttpRequest" }
+    }).then(r => r.json()).then(data => {
+        if (data.success) { showToast(`${symbol} added to watchlist`); location.reload(); }
+    });
+});
+document.querySelectorAll(".remove-btn").forEach(btn => {
+    btn.addEventListener("click", function() {
+        const symbol = this.dataset.symbol;
+        const url = this.dataset.url;
+        const csrfToken = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || "";
+        fetch(url, {
+            method: "POST",
+            headers: { "X-CSRFToken": csrfToken, "X-Requested-With": "XMLHttpRequest" }
+        }).then(r => r.json()).then(data => {
+            if (data.success) {
+                document.getElementById(`row-${symbol}`)?.remove();
+                showToast(`${symbol} removed`, "error");
+                if (!document.querySelector("tbody tr")) location.reload();
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
