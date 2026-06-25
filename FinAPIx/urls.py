@@ -20,6 +20,7 @@ from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from users.views import hello_view
 from dashboard.views import stock_dashboard
+from django.views.generic import RedirectView
 
 # Swagger / ReDoc
 from rest_framework import permissions
@@ -40,6 +41,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path('', RedirectView.as_view(url='/dashboard/')),
 
     # JWT Auth
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
