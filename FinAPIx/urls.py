@@ -50,7 +50,7 @@ urlpatterns = [
     path("users/", include("users.urls")),
     path("watchlist/", include("watchlist.urls")),
     path("api/stocks/", include("stocks.urls")),
-    path("dashboard/", stock_dashboard, name="stock_dashboard"),
+    path("dashboard/", include("dashboard.urls")),
     # path("accounts/", include("django.contrib.auth.urls")),
 
     # API Docs
