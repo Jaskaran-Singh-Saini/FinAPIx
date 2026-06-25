@@ -2,21 +2,20 @@
 
 import yfinance as yf
 import pandas as pd
-import pandas_ta as ta
+from ta.momentum import RSIIndicator
+from ta.trend import SMAIndicator, MACD
+from ta.volatility import BollingerBands
 from .models import StockIndicator
 
 def fetch_and_save_stock_data(symbol):
-    
     try:
-        # --- NEW: Check if we have any data for this symbol ---
         is_initial_fetch = not StockIndicator.objects.filter(symbol=symbol).exists()
-        
+
         if is_initial_fetch:
-            print(f"📈 Initial fetch for {symbol}. Getting full 3-month history.")
+            print(f"📈 Initial fetch for {symbol}. Getting full 6-month history.")
         else:
             print(f"🔄 Daily update for {symbol}.")
 
-        # Fetch 3 months of data for accurate indicator calculation
         df = yf.download(tickers=symbol, period="6mo", interval="1d", progress=False, group_by="column")
 
         if df.empty:
@@ -33,24 +32,22 @@ def fetch_and_save_stock_data(symbol):
             print("❌ Required columns missing in fetched data.")
             return "Missing columns"
 
-        # Calculate indicators
-        df.ta.rsi(length=14, append=True)
-        df.ta.sma(length=14, append=True)
-        df.ta.macd(append=True)
-        df.ta.bbands(length=20, std=2, append=True)
+        close = df["Close"]
 
-        # --- NEW: Decide how much data to process ---
-        if is_initial_fetch:
-            # For the first fetch, process the entire DataFrame
-            data_to_process = df
-        else:
-            # For daily updates, only process the last 5 days for efficiency
-            data_to_process = df.tail(5)
-        
+        # Calculate indicators
+        df["RSI_14"]      = RSIIndicator(close=close, window=14).rsi()
+        df["SMA_14"]      = SMAIndicator(close=close, window=14).sma_indicator()
+        macd              = MACD(close=close)
+        df["MACD_12_26_9"]= macd.macd()
+        bb                = BollingerBands(close=close, window=20, window_dev=2)
+        df["BBU_20"]      = bb.bollinger_hband()
+        df["BBL_20"]      = bb.bollinger_lband()
+
+        data_to_process = df if is_initial_fetch else df.tail(5)
+
         created_count = 0
         updated_count = 0
-        
-        # Loop over the selected data (either the full history or just the last 5 days)
+
         for _, row in data_to_process.iterrows():
             if pd.isna(row["Date"]) or pd.isna(row["Close"]):
                 continue
@@ -59,15 +56,14 @@ def fetch_and_save_stock_data(symbol):
                 symbol=symbol,
                 date=row["Date"].date(),
                 defaults={
-                    'close': row["Close"],
-                    'rsi': row.get("RSI_14"),
-                    'sma_14': row.get("SMA_14"),
-                    'macd_line': row.get("MACD_12_26_9"),
-                    'bb_upper': row.get("BBU_20_2.0_2.0"),
-                    'bb_lower': row.get("BBL_20_2.0_2.0"),
+                    'close':      row["Close"],
+                    'rsi':        row.get("RSI_14"),
+                    'sma_14':     row.get("SMA_14"),
+                    'macd_line':  row.get("MACD_12_26_9"),
+                    'bb_upper':   row.get("BBU_20"),
+                    'bb_lower':   row.get("BBL_20"),
                 }
             )
-            
             if created:
                 created_count += 1
             else:

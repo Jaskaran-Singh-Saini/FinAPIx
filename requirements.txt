@@ -61,4 +61,4 @@ yfinance==0.2.64
 python-decouple==3.8
 dj-database-url==2.3.0
 whitenoise==6.9.0
-pandas-ta==0.4.71b0
+ta==0.11.0
