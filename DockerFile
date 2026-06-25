@@ -1,31 +1,27 @@
-FROM python:3.11-slim AS base
+FROM python:3.12-slim
 
 # Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Set working directory
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
+RUN apt-get update && apt-get install -y \
     libpq-dev \
-    curl \
+    gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy project files
-COPY requirements.txt .
-
 # Install Python dependencies
-RUN pip install --upgrade pip \
-    && pip install -r requirements.txt
+COPY requirements.txt .
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copy app code
+# Copy project
 COPY . .
 
-# Expose port for Gunicorn
+# Collect static files
+RUN python manage.py collectstatic --noinput
+
 EXPOSE 8000
 
-# Default run command
-CMD ["gunicorn", "FinAPIx.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+CMD ["gunicorn", "FinAPIx.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2"]

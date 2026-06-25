@@ -135,6 +135,7 @@
         input:-webkit-autofill { -webkit-text-fill-color: var(--text-primary) !important; -webkit-box-shadow: 0 0 0px 1000px #0F1420 inset !important; }
 
         .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1055; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -211,6 +212,25 @@
             <svg width="11" height="11" viewBox="0 0 24 24" fill="#00D084" stroke="#00D084" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             Watching
         </span>
+        {% endif %}
+        {% if user.is_authenticated %}
+        <button id="refreshBtn" onclick="refreshStock()" style="
+            background: rgba(34,211,238,0.08);
+            border: 1px solid rgba(34,211,238,0.25);
+            color: var(--accent-glow);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 6px 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s;
+            margin-left: auto;">
+            <svg id="refreshIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Refresh Data
+        </button>
         {% endif %}
     </div>
 
@@ -383,6 +403,31 @@
         }
     })();
     // ──────────────────────────────────────────────────────────────
+
+    function refreshStock() {
+        const btn = document.getElementById("refreshBtn");
+        const icon = document.getElementById("refreshIcon");
+        btn.disabled = true;
+        btn.style.opacity = "0.6";
+        icon.style.animation = "spin 1s linear infinite";
+
+        const csrfToken = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || "";
+        fetch(`/dashboard/refresh/{{ symbol }}/`, {
+            method: "POST",
+            headers: { "X-CSRFToken": csrfToken }
+        })
+        .then(r => r.json())
+        .then(data => {
+            showToast(data.message || "Data refreshed!", "success");
+            setTimeout(() => location.reload(), 1500);
+        })
+        .catch(() => showToast("Refresh failed", "error"))
+        .finally(() => {
+            btn.disabled = false;
+            btn.style.opacity = "1";
+            icon.style.animation = "";
+        });
+    }
 
     function showToast(msg, type="success") {
         const toast = document.getElementById("liveToast");

@@ -58,3 +58,6 @@ vine==5.1.0
 wcwidth==0.2.13
 websockets==15.0.1
 yfinance==0.2.64
+python-decouple==3.8
+dj-database-url==2.3.0
+whitenoise==6.9.0

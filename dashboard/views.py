@@ -9,6 +9,8 @@ import math
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 
+QUICK_SYMBOLS = ["AAPL", "TSLA", "MSFT", "GOOGL", "NVDA"]
+
 
 def is_nan(v):
     return v is None or (isinstance(v, float) and math.isnan(v))
@@ -32,6 +34,7 @@ def stock_dashboard(request):
                 "data": [],
                 "start": start_date,
                 "end": end_date,
+                "quick_symbols": QUICK_SYMBOLS,
                 "error": f"No data available for {symbol}. Please check the symbol."
             })
 
@@ -51,11 +54,13 @@ def stock_dashboard(request):
             "data": [],
             "start": start_date,
             "end": end_date,
+            "quick_symbols": QUICK_SYMBOLS,
             "error": "No data found for the selected date range."
         })
 
     chart_data = build_chart_data(symbol, data_qs)
 
+    # Table: only show rows where RSI is available (enough history)
     table_data = [e for e in data_qs if not is_nan(e.rsi)]
 
     user_watchlist = []
@@ -74,11 +79,16 @@ def stock_dashboard(request):
         "end": end_date,
         "user_watchlist": user_watchlist,
         "prediction": prediction,
+        "quick_symbols": QUICK_SYMBOLS,
     })
 
 
 def clean_data(values):
     return [None if is_nan(v) else v for v in values]
+
+
+def is_nan(v):
+    return v is None or (isinstance(v, float) and math.isnan(v))
 
 
 def build_chart_data(symbol, data_qs):
@@ -120,4 +130,13 @@ def dashboard_view(request):
         'indicators': indicators,
         'all_symbols': list(all_symbols),
         'user_symbols': list(tracked_symbols),
+        'quick_symbols': QUICK_SYMBOLS,
     })
+
+@login_required
+def refresh_stock(request, symbol):
+    """Manual refresh endpoint — replaces Celery beat in production."""
+    if request.method == "POST":
+        result = fetch_and_save_stock_data(symbol.upper())
+        return JsonResponse({"success": True, "message": result})
+    return JsonResponse({"success": False, "message": "POST required"}, status=405)
